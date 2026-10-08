@@ -1,0 +1,37 @@
+PREGUNTAS Y RESPUESTAS
+
+1. ¿Qué diferencia existe entre Heroe, DbSet<Heroe> y HeroesDbContext?
+
+Heroe: Es la clase de entidad que representa un héroe en el dominio. Tiene propiedades como Id, Nombre, Ciudad, etc. Se mapea a una tabla en la base de datos.
+DbSet<Heroe>: Es la propiedad de acceso al conjunto de entidades dentro del contexto. Representa la tabla Heroes en la base de datos y permite hacer consultas (_context.Heroes.FirstOrDefaultAsync(...)).
+HeroesDbContext: Es la clase de contexto que hereda de DbContext. Coordina el acceso a la base de datos, contiene los DbSet y gestiona el seguimiento de cambios, la conexión y el guardado.
+
+--------------------------------------------
+
+2. ¿Por qué el formulario puede mostrar un nombre nuevo aunque SQL conserve el anterior?
+
+Porque el cambio se realizó en memoria (en el objeto heroe que está siendo rastreado por el contexto), pero no se llamó a SaveChangesAsync(). El contexto marca el objeto como modificado (Modified), pero la base de datos no se actualiza hasta que se ejecuta el guardado.
+
+--------------------------------------------
+
+3. ¿Qué hace SaveChangesAsync() en esta práctica?
+
+SaveChangesAsync() persiste los cambios realizados en las entidades rastreadas por el contexto hacia la base de datos. En esta práctica, cuando la casilla "Guardar" está marcada, se ejecuta y actualiza el nombre del héroe en SQL Server. Si no se llama, los cambios solo quedan en memoria.
+
+--------------------------------------------
+
+4. ¿Por qué el POST vuelve a consultar el héroe?
+
+Porque las solicitudes HTTP no conservan el contexto entre GET y POST. Cada solicitud crea un nuevo HeroesDbContext (por inyección de dependencias), y el objeto heroe de la solicitud anterior ya no existe. Por eso, el POST debe volver a consultar el héroe desde la base de datos para trabajar con una entidad rastreada.
+
+--------------------------------------------
+
+5. ¿Por qué no necesitamos llamar a Update(heroe)?
+
+Porque el héroe fue obtenido mediante una consulta con seguimiento (FirstOrDefaultAsync), lo que significa que el contexto ya lo está rastreando. Al modificar una propiedad (heroe.Nombre = ...), el contexto detecta el cambio automáticamente y marca la entidad como Modified. No es necesario llamar a Update() porque la entidad ya está siendo rastreada.
+
+--------------------------------------------
+
+6. ¿Para qué se utilizó DetectChanges()?
+
+DetectChanges() se utilizó para forzar la detección de cambios en el contexto antes de inspeccionar el estado de la entidad. Normalmente EF Core detecta cambios automáticamente al llamar a SaveChangesAsync(), pero en esta práctica se llama explícitamente para observar el estado (Modified) durante el laboratorio, incluso antes de guardar.
